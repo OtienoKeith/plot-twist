@@ -77,6 +77,8 @@ export default function Home() {
   const soundRef = useRef(true);
   const voiceRef = useRef(true);
   const narratorAudioRef = useRef<HTMLAudioElement | null>(null);
+  const narratorRunRef = useRef(0);
+  const narratorResolveRef = useRef<(() => void) | null>(null);
 
   const chosen = useMemo(
     () => selected.map((id) => STICKERS.find((sticker) => sticker.id === id)!).filter(Boolean),
@@ -121,20 +123,45 @@ export default function Home() {
 
   function sparkle(notes: number[]) { notes.forEach((note, index) => playTone(note, .18, .055, index * .08, index % 2 ? "triangle" : "sine")); }
 
+  function narrationChunks(text: string) {
+    const words = text.replace(/\s+/g, " ").trim().split(" ");
+    const chunks: string[] = [];
+    for (const word of words) {
+      const last = chunks[chunks.length - 1];
+      if (!last || `${last} ${word}`.length > 185) chunks.push(word);
+      else chunks[chunks.length - 1] = `${last} ${word}`;
+    }
+    return chunks;
+  }
+
   async function speak(text: string, mood: "host" | "excited" | "tease" = "host") {
     if (!voiceRef.current || typeof window === "undefined") return;
+    const run = ++narratorRunRef.current;
+    narratorResolveRef.current?.();
     narratorAudioRef.current?.pause();
+    stopMusic();
     try {
-      const response = await fetch("/api/voice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, mood }) });
-      if (!response.ok || !voiceRef.current) return;
-      const url = URL.createObjectURL(await response.blob());
-      const audio = new Audio(url);
-      narratorAudioRef.current = audio;
-      stopMusic();
-      audio.onended = () => { URL.revokeObjectURL(url); narratorAudioRef.current = null; if (soundRef.current) startMusic(); };
-      audio.onerror = () => { URL.revokeObjectURL(url); narratorAudioRef.current = null; if (soundRef.current) startMusic(); };
-      await audio.play();
-    } catch { if (soundRef.current) startMusic(); }
+      for (const chunk of narrationChunks(text)) {
+        if (!voiceRef.current || narratorRunRef.current !== run) break;
+        const response = await fetch("/api/voice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: chunk, mood }) });
+        if (!response.ok) break;
+        const url = URL.createObjectURL(await response.blob());
+        const audio = new Audio(url);
+        narratorAudioRef.current = audio;
+        await new Promise<void>((resolve) => {
+          let settled = false;
+          const finish = () => { if (settled) return; settled = true; URL.revokeObjectURL(url); narratorResolveRef.current = null; resolve(); };
+          narratorResolveRef.current = finish;
+          audio.onended = finish;
+          audio.onerror = finish;
+          void audio.play().catch(finish);
+        });
+      }
+    } catch {
+      // Leave the visual game playable if the optional narrator is unavailable.
+    } finally {
+      if (narratorRunRef.current === run) { narratorAudioRef.current = null; if (soundRef.current) startMusic(); }
+    }
   }
 
   function startMusic() {
@@ -152,7 +179,7 @@ export default function Home() {
   function stopMusic() { if (musicTimerRef.current) clearInterval(musicTimerRef.current); musicTimerRef.current = null; }
   function beginGame() {
     ensureAudio(); setStarted(true); sparkle([392, 523, 659, 784]); setTimeout(startMusic, 280);
-    setTimeout(() => speak("Let the chaos begin!", "excited"), 480);
+    setTimeout(() => speak(`Let the chaos begin! ${scene.problem} Choose three stickers. Bad ideas are highly encouraged.`, "excited"), 480);
   }
   function toggleSound() {
     const next = !soundOn; setSoundOn(next); soundRef.current = next;
@@ -160,8 +187,8 @@ export default function Home() {
   }
   function toggleVoice() {
     const next = !voiceOn; setVoiceOn(next); voiceRef.current = next;
-    if (!next) { narratorAudioRef.current?.pause(); narratorAudioRef.current = null; }
-    else speak("Woohoo! Voice is back!", "excited");
+    if (!next) { narratorRunRef.current += 1; narratorResolveRef.current?.(); narratorAudioRef.current?.pause(); narratorAudioRef.current = null; }
+    else speak(`Woohoo! Voice is back! ${scene.problem}`, "excited");
   }
   function chooseSticker(id: string) {
     if (selected.includes(id)) playTone(240, .09, .035, 0, "square");
@@ -198,7 +225,7 @@ export default function Home() {
       setHistory((items) => [...items, { ...scene, reaction: result.reaction, choices: chosen.map((item) => item.emoji) }]);
       setScore((value) => value + points);
       sparkle(turn % 3 === 0 ? [523, 659, 784, 1047, 1319] : [523, 659, 784, 988]);
-      setTimeout(() => speak(`${VERDICTS[(turn + variety) % VERDICTS.length]}! Plus ${points} chaos!`, "excited"), 280);
+      setTimeout(() => speak(`${VERDICTS[(turn + variety) % VERDICTS.length]}! ${result.reaction} You earned ${points} chaos points.`, "excited"), 280);
     } catch {
       setHistory((items) => [...items, { ...scene, reaction: "The stickers unionized, solved the problem off-screen, and left one mysterious glittery receipt.", choices: chosen.map((item) => item.emoji) }]);
       setScene({ problem: "The receipt is actually a treasure map, but the X keeps moving." });
@@ -214,11 +241,13 @@ export default function Home() {
     const nextTurn = turn + 1;
     setScene({ problem: reveal.nextSituation }); setReveal(null); setSelected([]); setTurn(nextTurn);
     setHand(dealHand(nextTurn)); setRerolls(1); sparkle([330, 440, 554]);
-    setTimeout(() => speak("Next twist! Pick your chaos.", "host"), 260);
+    setTimeout(() => speak(`Next twist! ${reveal.nextSituation} Pick your chaos.`, "host"), 260);
   }
 
   function restart() {
     stopMusic();
+    narratorRunRef.current += 1;
+    narratorResolveRef.current?.();
     narratorAudioRef.current?.pause(); narratorAudioRef.current = null;
     setStarted(false);
     setFinished(false);

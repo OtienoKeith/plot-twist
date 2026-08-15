@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   if (!allowRequest(ip)) return Response.json({ error: "Voice is catching its breath." }, { status: 429 });
 
   const body = (await request.json()) as VoiceRequest;
-  const text = String(body.text || "").replace(/\s+/g, " ").trim().slice(0, 90);
+  const text = String(body.text || "").replace(/\s+/g, " ").trim().slice(0, 200);
   if (!text) return Response.json({ error: "Nothing to narrate." }, { status: 400 });
 
   const key = process.env.GROQ_API_KEY;
