@@ -164,9 +164,16 @@ export default function Home() {
             resolve();
           };
           narratorResolveRef.current = finish;
+          audio.onplaying = () => console.info("[Plot Twist] narrator playback started");
           audio.onended = finish;
-          audio.onerror = finish;
-          void audio.play().catch(finish);
+          audio.onerror = () => {
+            console.error("[Plot Twist] narrator audio could not be played", audio.error?.message || "unknown media error");
+            finish();
+          };
+          void audio.play().catch((error) => {
+            console.error("[Plot Twist] narrator playback was blocked", error instanceof Error ? error.message : "unknown error");
+            finish();
+          });
         });
       }
     } catch {
