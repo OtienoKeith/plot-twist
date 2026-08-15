@@ -76,7 +76,7 @@ export default function Home() {
   const musicStepRef = useRef(0);
   const soundRef = useRef(true);
   const voiceRef = useRef(true);
-  const narratorAudioRef = useRef<HTMLAudioElement | null>(null);
+  const narratorSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const narratorRunRef = useRef(0);
   const narratorResolveRef = useRef<(() => void) | null>(null);
 
@@ -97,7 +97,7 @@ export default function Home() {
   useEffect(() => () => {
     if (musicTimerRef.current) clearInterval(musicTimerRef.current);
     audioRef.current?.close();
-    narratorAudioRef.current?.pause();
+    try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ }
   }, []);
 
   function ensureAudio() {
@@ -138,29 +138,32 @@ export default function Home() {
     if (!voiceRef.current || typeof window === "undefined") return;
     const run = ++narratorRunRef.current;
     narratorResolveRef.current?.();
-    narratorAudioRef.current?.pause();
+    try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ }
     stopMusic();
     try {
       for (const chunk of narrationChunks(text)) {
         if (!voiceRef.current || narratorRunRef.current !== run) break;
         const response = await fetch("/api/voice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: chunk, mood }) });
         if (!response.ok) break;
-        const url = URL.createObjectURL(await response.blob());
-        const audio = new Audio(url);
-        narratorAudioRef.current = audio;
+        const context = ensureAudio();
+        if (!context) break;
+        const buffer = await context.decodeAudioData(await response.arrayBuffer());
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(context.destination);
+        narratorSourceRef.current = source;
         await new Promise<void>((resolve) => {
           let settled = false;
-          const finish = () => { if (settled) return; settled = true; URL.revokeObjectURL(url); narratorResolveRef.current = null; resolve(); };
+          const finish = () => { if (settled) return; settled = true; narratorResolveRef.current = null; resolve(); };
           narratorResolveRef.current = finish;
-          audio.onended = finish;
-          audio.onerror = finish;
-          void audio.play().catch(finish);
+          source.onended = finish;
+          source.start();
         });
       }
     } catch {
       // Leave the visual game playable if the optional narrator is unavailable.
     } finally {
-      if (narratorRunRef.current === run) { narratorAudioRef.current = null; if (soundRef.current) startMusic(); }
+      if (narratorRunRef.current === run) { narratorSourceRef.current = null; if (soundRef.current) startMusic(); }
     }
   }
 
@@ -187,7 +190,7 @@ export default function Home() {
   }
   function toggleVoice() {
     const next = !voiceOn; setVoiceOn(next); voiceRef.current = next;
-    if (!next) { narratorRunRef.current += 1; narratorResolveRef.current?.(); narratorAudioRef.current?.pause(); narratorAudioRef.current = null; }
+    if (!next) { narratorRunRef.current += 1; narratorResolveRef.current?.(); try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ } narratorSourceRef.current = null; }
     else speak(`Woohoo! Voice is back! ${scene.problem}`, "excited");
   }
   function chooseSticker(id: string) {
@@ -249,7 +252,7 @@ export default function Home() {
     stopMusic();
     narratorRunRef.current += 1;
     narratorResolveRef.current?.();
-    narratorAudioRef.current?.pause(); narratorAudioRef.current = null;
+    try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ } narratorSourceRef.current = null;
     setStarted(false);
     setFinished(false);
     setHistory([]);
