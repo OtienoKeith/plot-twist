@@ -1,101 +1,122 @@
-# vinext-starter
+# Plot Twist! ✦
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+> Pick three ridiculous stickers. AI turns them into an endless, joyful story where imagination—not perfection—wins.
 
-## Prerequisites
+[![Play Plot Twist](https://img.shields.io/badge/PLAY_NOW-Cloudflare_Workers-ff45a5?style=for-the-badge)](https://plot-twist.otienomkeith.workers.dev/)
+[![No login](https://img.shields.io/badge/NO_LOGIN-Just_Play-cdff3e?style=for-the-badge)](https://plot-twist.otienomkeith.workers.dev/)
 
-- Node.js `>=22.13.0`
+![Plot Twist gameplay artwork](./public/og-v2.png)
 
-## Quick Start
+## Play it
+
+**Live app:** [plot-twist.otienomkeith.workers.dev](https://plot-twist.otienomkeith.workers.dev/)
+
+**Gameplay video:** [Watch the MP4 demo](./demo/plot-twist-gameplay.mp4)
+
+No account, installation, or personal data is required. Open the link and start playing.
+
+## What is Plot Twist?
+
+Plot Twist! is an endless AI-powered comedy game. Each round gives the player an absurd problem. The player chooses exactly three stickers, and the AI must turn all three choices into a funny solution that creates the next chapter.
+
+There are no wrong answers. The human supplies the imagination; AI handles the consequences.
+
+## Why we made it
+
+Many wellness products feel like another assignment: track a habit, complete a checklist, or optimize yourself. Plot Twist! creates a different kind of wellness moment—a pressure-free invitation to play, laugh, and be imaginative.
+
+The experience supports the CS Girlies mission by making technology feel approachable, expressive, inclusive, and owned by the person using it. Players do not need technical expertise, an account, or a perfect answer to participate.
+
+## Features
+
+- **Endless connected stories** generated from the player's choices
+- **Three-sticker problem solving** with dozens of surprising combinations
+- **Expressive AI narration** that reads the stickers, verdict, and complete story
+- **Chaos points, chapters, rerolls, and story history** for replayable game structure
+- **Joyful audio design** with music, interaction sounds, and independent sound controls
+- **Instant access** with no sign-in or personal data collection
+- **Responsive interface** designed for desktop and mobile play
+- **Resilient fallback stories** so the game remains playable if generation is temporarily unavailable
+
+## How it works
+
+1. The player receives an absurd problem.
+2. They select three sticker cards.
+3. A protected server route sends the problem and stickers to Groq.
+4. Llama 3.1 8B Instant creates a structured consequence and the next connected problem.
+5. Groq Orpheus generates expressive narration using the Hannah voice.
+6. The new problem becomes the next round, creating an endless story loop.
+
+API keys stay on the server and are never sent to the browser.
+
+## Built with
+
+- React 19
+- TypeScript
+- Vinext and Vite
+- Cloudflare Workers
+- Groq Llama 3.1 8B Instant
+- Groq Orpheus text-to-speech
+- Web Audio API
+- CSS animations and responsive layouts
+
+## Run locally
+
+### Requirements
+
+- Node.js 22.13 or newer
+- A Groq API key for live AI generation and narration
 
 ```bash
+git clone https://github.com/OtienoKeith/plot-twist.git
+cd plot-twist
 npm install
+```
+
+Create `.env.local`:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+```
+
+Start the development server:
+
+```bash
 npm run dev
+```
+
+Then open `http://localhost:3000`.
+
+## Build and deploy
+
+```bash
 npm run build
+npx wrangler deploy --config dist/server/wrangler.json --name plot-twist
 ```
 
-This starter does not use `wrangler.jsonc`.
+Store the Groq key as a protected Cloudflare secret:
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+npx wrangler secret put GROQ_API_KEY --name plot-twist
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+## Privacy and accessibility
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+Plot Twist! does not require registration and does not collect player profiles. Music and narration can be controlled separately. The interface uses semantic controls, visible focus states, high-contrast colors, and touch-friendly targets.
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+## What's next
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+- More sticker packs and themed story worlds
+- Multiple narrator personalities
+- Reduced-motion and expanded accessibility settings
+- Local story saving without an account
+- Shareable illustrated endings
+- Cooperative play on one device
+- Multilingual stories and narration
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+## Links
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+- [Live Cloudflare deployment](https://plot-twist.otienomkeith.workers.dev/)
+- [Source code](https://github.com/OtienoKeith/plot-twist)
 
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
-
+Built for joy, curiosity, and beautifully bad ideas. ✿
