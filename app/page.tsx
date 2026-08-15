@@ -7,30 +7,30 @@ type Scene = { problem: string; reaction?: string; choices?: string[] };
 type Reveal = { reaction: string; nextSituation: string; points: number; verdict: string };
 
 const STICKERS: Sticker[] = [
-  { id: "frog", emoji: "🐸", label: "Frog", color: "mint", kind: "creature" },
-  { id: "pizza", emoji: "🍕", label: "Pizza", color: "peach", kind: "food" },
-  { id: "lipstick", emoji: "💄", label: "Lipstick", color: "pink", kind: "object" },
-  { id: "skate", emoji: "🛼", label: "Roller skate", color: "lilac", kind: "object" },
-  { id: "disco", emoji: "🪩", label: "Disco ball", color: "blue", kind: "magic" },
-  { id: "crown", emoji: "👑", label: "Crown", color: "yellow", kind: "magic" },
-  { id: "magnet", emoji: "🧲", label: "Magnet", color: "peach", kind: "object" },
-  { id: "headphones", emoji: "🎧", label: "Headphones", color: "blue", kind: "object" },
-  { id: "cupcake", emoji: "🧁", label: "Cupcake", color: "pink", kind: "food" },
-  { id: "balloon", emoji: "🎈", label: "Balloon", color: "yellow", kind: "object" },
-  { id: "soap", emoji: "🫧", label: "Bubbles", color: "mint", kind: "magic" },
-  { id: "banana", emoji: "🍌", label: "Banana", color: "yellow", kind: "food" },
-  { id: "cat", emoji: "🐈", label: "Cat", color: "peach", kind: "creature" },
-  { id: "alien", emoji: "👽", label: "Alien", color: "mint", kind: "creature" },
-  { id: "duck", emoji: "🦆", label: "Duck", color: "yellow", kind: "creature" },
-  { id: "unicorn", emoji: "🦄", label: "Unicorn", color: "lilac", kind: "creature" },
-  { id: "cookie", emoji: "🍪", label: "Cookie", color: "peach", kind: "food" },
-  { id: "pickle", emoji: "🥒", label: "Pickle", color: "mint", kind: "food" },
-  { id: "cake", emoji: "🎂", label: "Cake", color: "pink", kind: "food" },
-  { id: "key", emoji: "🔑", label: "Tiny key", color: "yellow", kind: "object" },
-  { id: "umbrella", emoji: "☂️", label: "Umbrella", color: "lilac", kind: "object" },
-  { id: "rocket", emoji: "🚀", label: "Rocket", color: "blue", kind: "magic" },
-  { id: "crystal", emoji: "🔮", label: "Crystal ball", color: "lilac", kind: "magic" },
-  { id: "spark", emoji: "✨", label: "Pure sparkle", color: "pink", kind: "magic" },
+  { id: "frog", emoji: "ðŸ¸", label: "Frog", color: "mint", kind: "creature" },
+  { id: "pizza", emoji: "ðŸ•", label: "Pizza", color: "peach", kind: "food" },
+  { id: "lipstick", emoji: "ðŸ’„", label: "Lipstick", color: "pink", kind: "object" },
+  { id: "skate", emoji: "ðŸ›¼", label: "Roller skate", color: "lilac", kind: "object" },
+  { id: "disco", emoji: "ðŸª©", label: "Disco ball", color: "blue", kind: "magic" },
+  { id: "crown", emoji: "ðŸ‘‘", label: "Crown", color: "yellow", kind: "magic" },
+  { id: "magnet", emoji: "ðŸ§²", label: "Magnet", color: "peach", kind: "object" },
+  { id: "headphones", emoji: "ðŸŽ§", label: "Headphones", color: "blue", kind: "object" },
+  { id: "cupcake", emoji: "ðŸ§", label: "Cupcake", color: "pink", kind: "food" },
+  { id: "balloon", emoji: "ðŸŽˆ", label: "Balloon", color: "yellow", kind: "object" },
+  { id: "soap", emoji: "ðŸ«§", label: "Bubbles", color: "mint", kind: "magic" },
+  { id: "banana", emoji: "ðŸŒ", label: "Banana", color: "yellow", kind: "food" },
+  { id: "cat", emoji: "ðŸˆ", label: "Cat", color: "peach", kind: "creature" },
+  { id: "alien", emoji: "ðŸ‘½", label: "Alien", color: "mint", kind: "creature" },
+  { id: "duck", emoji: "ðŸ¦†", label: "Duck", color: "yellow", kind: "creature" },
+  { id: "unicorn", emoji: "ðŸ¦„", label: "Unicorn", color: "lilac", kind: "creature" },
+  { id: "cookie", emoji: "ðŸª", label: "Cookie", color: "peach", kind: "food" },
+  { id: "pickle", emoji: "ðŸ¥’", label: "Pickle", color: "mint", kind: "food" },
+  { id: "cake", emoji: "ðŸŽ‚", label: "Cake", color: "pink", kind: "food" },
+  { id: "key", emoji: "ðŸ”‘", label: "Tiny key", color: "yellow", kind: "object" },
+  { id: "umbrella", emoji: "â˜‚ï¸", label: "Umbrella", color: "lilac", kind: "object" },
+  { id: "rocket", emoji: "ðŸš€", label: "Rocket", color: "blue", kind: "magic" },
+  { id: "crystal", emoji: "ðŸ”®", label: "Crystal ball", color: "lilac", kind: "magic" },
+  { id: "spark", emoji: "âœ¨", label: "Pure sparkle", color: "pink", kind: "magic" },
 ];
 
 const STARTERS = [
@@ -76,7 +76,8 @@ export default function Home() {
   const musicStepRef = useRef(0);
   const soundRef = useRef(true);
   const voiceRef = useRef(true);
-  const narratorSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const narratorAudioRef = useRef<HTMLAudioElement | null>(null);
+  const narratorUrlRef = useRef<string | null>(null);
   const narratorRunRef = useRef(0);
   const narratorResolveRef = useRef<(() => void) | null>(null);
 
@@ -97,7 +98,8 @@ export default function Home() {
   useEffect(() => () => {
     if (musicTimerRef.current) clearInterval(musicTimerRef.current);
     audioRef.current?.close();
-    try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ }
+    narratorAudioRef.current?.pause();
+    if (narratorUrlRef.current) URL.revokeObjectURL(narratorUrlRef.current);
   }, []);
 
   function ensureAudio() {
@@ -138,32 +140,39 @@ export default function Home() {
     if (!voiceRef.current || typeof window === "undefined") return;
     const run = ++narratorRunRef.current;
     narratorResolveRef.current?.();
-    try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ }
+    narratorAudioRef.current?.pause();
+    if (narratorUrlRef.current) URL.revokeObjectURL(narratorUrlRef.current);
+    narratorUrlRef.current = null;
     stopMusic();
     try {
       for (const chunk of narrationChunks(text)) {
         if (!voiceRef.current || narratorRunRef.current !== run) break;
         const response = await fetch("/api/voice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: chunk, mood }) });
         if (!response.ok) break;
-        const context = ensureAudio();
-        if (!context) break;
-        const buffer = await context.decodeAudioData(await response.arrayBuffer());
-        const source = context.createBufferSource();
-        source.buffer = buffer;
-        source.connect(context.destination);
-        narratorSourceRef.current = source;
+        const audioUrl = URL.createObjectURL(await response.blob());
+        narratorUrlRef.current = audioUrl;
+        const audio = new Audio(audioUrl);
+        narratorAudioRef.current = audio;
         await new Promise<void>((resolve) => {
           let settled = false;
-          const finish = () => { if (settled) return; settled = true; narratorResolveRef.current = null; resolve(); };
+          const finish = () => {
+            if (settled) return;
+            settled = true;
+            narratorResolveRef.current = null;
+            URL.revokeObjectURL(audioUrl);
+            if (narratorUrlRef.current === audioUrl) narratorUrlRef.current = null;
+            resolve();
+          };
           narratorResolveRef.current = finish;
-          source.onended = finish;
-          source.start();
+          audio.onended = finish;
+          audio.onerror = finish;
+          void audio.play().catch(finish);
         });
       }
     } catch {
       // Leave the visual game playable if the optional narrator is unavailable.
     } finally {
-      if (narratorRunRef.current === run) { narratorSourceRef.current = null; if (soundRef.current) startMusic(); }
+      if (narratorRunRef.current === run) { narratorAudioRef.current = null; if (soundRef.current) startMusic(); }
     }
   }
 
@@ -190,7 +199,7 @@ export default function Home() {
   }
   function toggleVoice() {
     const next = !voiceOn; setVoiceOn(next); voiceRef.current = next;
-    if (!next) { narratorRunRef.current += 1; narratorResolveRef.current?.(); try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ } narratorSourceRef.current = null; }
+    if (!next) { narratorRunRef.current += 1; narratorResolveRef.current?.(); narratorAudioRef.current?.pause(); narratorAudioRef.current = null; if (narratorUrlRef.current) URL.revokeObjectURL(narratorUrlRef.current); narratorUrlRef.current = null; }
     else speak(`Woohoo! Voice is back! ${scene.problem}`, "excited");
   }
   function chooseSticker(id: string) {
@@ -252,7 +261,8 @@ export default function Home() {
     stopMusic();
     narratorRunRef.current += 1;
     narratorResolveRef.current?.();
-    try { narratorSourceRef.current?.stop(); } catch { /* already stopped */ } narratorSourceRef.current = null;
+    narratorAudioRef.current?.pause(); narratorAudioRef.current = null;
+    if (narratorUrlRef.current) URL.revokeObjectURL(narratorUrlRef.current); narratorUrlRef.current = null;
     setStarted(false);
     setFinished(false);
     setHistory([]);
@@ -267,40 +277,40 @@ export default function Home() {
       <main className="landing-shell">
         <nav className="topbar" aria-label="Main navigation">
           <a className="brand" href="#top" aria-label="Plot Twist home"><span className="brand-mark">P!</span> PLOT TWIST!</a>
-          <div className="nav-note">made for curious humans ✿</div>
+          <div className="nav-note">made for curious humans âœ¿</div>
         </nav>
 
         <section className="hero" id="top">
-          <div className="doodle doodle-one">✦</div>
-          <div className="doodle doodle-two">〰</div>
+          <div className="doodle doodle-one">âœ¦</div>
+          <div className="doodle doodle-two">ã€°</div>
           <div className="hero-copy">
-            <p className="eyebrow"><span>AI-POWERED</span> • HUMAN-IMAGINED</p>
+            <p className="eyebrow"><span>AI-POWERED</span> â€¢ HUMAN-IMAGINED</p>
             <h1>Solve anything with <em>three stickers.</em></h1>
-            <p className="hero-sub">Pick the most ridiculous solution you can. Our AI has to make it work. There are no wrong answers—only better plot twists.</p>
-            <button className="primary jumbo" onClick={beginGame}>Start the chaos <span>→</span></button>
+            <p className="hero-sub">Pick the most ridiculous solution you can. Our AI has to make it work. There are no wrong answersâ€”only better plot twists.</p>
+            <button className="primary jumbo" onClick={beginGame}>Start the chaos <span>â†’</span></button>
             <p className="microcopy">No login. No score. No pressure. Just play.</p>
           </div>
 
           <div className="hero-card" aria-label="Example game card">
             <div className="tape">YOUR FIRST PROBLEM</div>
             <span className="card-number">01</span>
-            <div className="ghost" aria-hidden="true"><span>👻</span><i>✦</i></div>
+            <div className="ghost" aria-hidden="true"><span>ðŸ‘»</span><i>âœ¦</i></div>
             <h2>A ghost stole your Wi-Fi.</h2>
-            <div className="sample-picks"><span>🐸</span><span>💄</span><span>🍕</span></div>
-            <div className="scribble">good luck explaining this ↑</div>
+            <div className="sample-picks"><span>ðŸ¸</span><span>ðŸ’„</span><span>ðŸ•</span></div>
+            <div className="scribble">good luck explaining this â†‘</div>
           </div>
         </section>
 
         <section className="how-it-works" aria-labelledby="how-title">
           <div className="section-intro"><p className="eyebrow">HOW IT WORKS</p><h2 id="how-title">Your imagination drives.<br/>AI handles the consequences.</h2></div>
           <div className="steps">
-            <article><b>1</b><span className="step-icon">⚡</span><h3>Meet a problem</h3><p>Every story starts with something delightfully wrong.</p></article>
-            <article><b>2</b><span className="step-icon">✨</span><h3>Pick 3 stickers</h3><p>No perfect answer. Choose whatever makes you curious.</p></article>
-            <article><b>3</b><span className="step-icon">↻</span><h3>Watch chaos unfold</h3><p>AI turns your choices into the next chapter—forever.</p></article>
+            <article><b>1</b><span className="step-icon">âš¡</span><h3>Meet a problem</h3><p>Every story starts with something delightfully wrong.</p></article>
+            <article><b>2</b><span className="step-icon">âœ¨</span><h3>Pick 3 stickers</h3><p>No perfect answer. Choose whatever makes you curious.</p></article>
+            <article><b>3</b><span className="step-icon">â†»</span><h3>Watch chaos unfold</h3><p>AI turns your choices into the next chapterâ€”forever.</p></article>
           </div>
         </section>
 
-        <footer><span>Built for joy, curiosity & beautifully bad ideas.</span><span>✿ Technology should feel like yours.</span></footer>
+        <footer><span>Built for joy, curiosity & beautifully bad ideas.</span><span>âœ¿ Technology should feel like yours.</span></footer>
       </main>
     );
   }
@@ -310,12 +320,12 @@ export default function Home() {
     return (
       <main className="game-shell ending-shell">
         <section className="ending-card">
-          <div className="confetti">✦ ✿ ★ ✧ ✿</div>
+          <div className="confetti">âœ¦ âœ¿ â˜… âœ§ âœ¿</div>
           <p className="eyebrow">CHAOS COMPLETE</p>
           <h1>You made it weird.</h1>
           <p>You survived {history.length} plot twist{history.length === 1 ? "" : "s"}, trusted your imagination, and solved absolutely nothing in the expected way.</p>
           <div className="earned-title"><small>YOUR OFFICIAL TITLE</small><strong>{title}</strong></div>
-          <button className="primary" onClick={restart}>Play a new story ↻</button>
+          <button className="primary" onClick={restart}>Play a new story â†»</button>
         </section>
       </main>
     );
@@ -325,7 +335,7 @@ export default function Home() {
     <main className="game-shell">
       <header className="game-header">
         <button className="brand button-brand" onClick={restart}><span className="brand-mark">P!</span> PLOT TWIST!</button>
-        <div className="game-meta"><span>✦ {score} CHAOS</span><span>TWIST {String(turn).padStart(2, "0")}</span><button onClick={toggleSound} aria-label={soundOn ? "Mute sounds" : "Enable sounds"}>{soundOn ? "♫ JOY" : "× SOUND"}</button><button className="voice-button" onClick={toggleVoice} aria-label={voiceOn ? "Mute narrator" : "Enable narrator"}>{voiceOn ? "● VOICE" : "○ VOICE"}</button></div>
+        <div className="game-meta"><span>âœ¦ {score} CHAOS</span><span>TWIST {String(turn).padStart(2, "0")}</span><button onClick={toggleSound} aria-label={soundOn ? "Mute sounds" : "Enable sounds"}>{soundOn ? "â™« JOY" : "Ã— SOUND"}</button><button className="voice-button" onClick={toggleVoice} aria-label={voiceOn ? "Mute narrator" : "Enable narrator"}>{voiceOn ? "â— VOICE" : "â—‹ VOICE"}</button></div>
       </header>
 
       <div className="game-layout">
@@ -343,30 +353,30 @@ export default function Home() {
           <div className="chapter-row"><b>CHAPTER {Math.min(5, Math.floor((turn - 1) / 3) + 1)}: {CHAPTERS[Math.min(4, Math.floor((turn - 1) / 3))]}</b><div className="chaos-track"><i style={{width:`${Math.min(100, ((turn - 1) % 3 + 1) * 33.3)}%`}} /></div></div>
           <div className="problem-card">
             <div className="problem-label">YOUR PROBLEM</div>
-            <div className="problem-emoji">{turn % 3 === 0 ? "🐉" : turn % 2 === 0 ? "🐸" : "👻"}</div>
+            <div className="problem-emoji">{turn % 3 === 0 ? "ðŸ‰" : turn % 2 === 0 ? "ðŸ¸" : "ðŸ‘»"}</div>
             <h1>{scene.problem}</h1>
             <p>Choose exactly three stickers. Bad ideas encouraged.</p>
           </div>
 
-          <div className="selection-title"><span>PICK YOUR CHAOS</span><div><button className="reroll" onClick={rerollHand} disabled={!rerolls}>↻ NEW STICKERS</button><b>{selected.length}/3 SELECTED</b></div></div>
+          <div className="selection-title"><span>PICK YOUR CHAOS</span><div><button className="reroll" onClick={rerollHand} disabled={!rerolls}>â†» NEW STICKERS</button><b>{selected.length}/3 SELECTED</b></div></div>
           <div className="sticker-grid">
             {hand.map((id) => STICKERS.find((item) => item.id === id)!).map((sticker) => {
               const active = selected.includes(sticker.id);
               return (
                 <button key={sticker.id} className={`sticker ${sticker.color} ${active ? "selected" : ""}`} onPointerEnter={() => playTone(170 + sticker.label.length * 8, .045, .012)} onClick={() => chooseSticker(sticker.id)} aria-pressed={active}>
-                  <span>{sticker.emoji}</span><small>{sticker.label}</small>{active && <i>✓</i>}
+                  <span>{sticker.emoji}</span><small>{sticker.label}</small>{active && <i>âœ“</i>}
                 </button>
               );
             })}
           </div>
 
           <button className="primary twist-button" disabled={selected.length !== 3 || loading} onClick={twistPlot}>
-            {loading ? "Twisting reality…" : selected.length === 3 ? "Make it make sense →" : `Pick ${3 - selected.length} more`}
+            {loading ? "Twisting realityâ€¦" : selected.length === 3 ? "Make it make sense â†’" : `Pick ${3 - selected.length} more`}
           </button>
           <button className="end-button" onPointerEnter={() => playTone(260, .07, .025)} onClick={() => { speak(`Final score: ${score} chaos points. You are officially ${TITLES[history.length % TITLES.length]}.`, "excited"); sparkle([523, 392, 330, 262]); stopMusic(); setFinished(true); }}>End my chaos</button>
         </section>
       </div>
-      <div className="ai-badge"><span>✦</span><div><b>AI CHAOS ENGINE</b><small>Human choices lead every story</small></div></div>
+      <div className="ai-badge"><span>âœ¦</span><div><b>AI CHAOS ENGINE</b><small>Human choices lead every story</small></div></div>
       {reveal && <div className="reveal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reveal-title">
         <section className="reveal-card">
           <div className="reveal-burst">{chosen.map((item) => item.emoji).join(" + ")}</div>
@@ -374,11 +384,12 @@ export default function Home() {
           <h2 id="reveal-title">{reveal.verdict}</h2>
           <p className="reaction-copy">{reveal.reaction}</p>
           <div className="points-pop">+{reveal.points} CHAOS</div>
-          {turn % 3 === 0 && <div className="unlock">🔓 NEW CHAPTER UNLOCKED</div>}
-          <button className="primary" onPointerEnter={() => playTone(880, .06, .025)} onClick={continueStory}>Keep the story going →</button>
+          {turn % 3 === 0 && <div className="unlock">ðŸ”“ NEW CHAPTER UNLOCKED</div>}
+          <button className="primary" onPointerEnter={() => playTone(880, .06, .025)} onClick={continueStory}>Keep the story going â†’</button>
           <button className="end-button" onPointerEnter={() => playTone(260, .07, .025)} onClick={() => { speak(`Final score: ${score} chaos points. You are officially ${TITLES[history.length % TITLES.length]}.`, "excited"); sparkle([523, 392, 330, 262]); stopMusic(); setFinished(true); }}>That is enough chaos for me</button>
         </section>
       </div>}
     </main>
   );
 }
+
