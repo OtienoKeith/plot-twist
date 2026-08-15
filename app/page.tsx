@@ -372,7 +372,6 @@ export default function Home() {
           <p className="reaction-copy">{reveal.reaction}</p>
           <div className="points-pop">+{reveal.points} CHAOS</div>
           {turn % 3 === 0 && <div className="unlock">🔓 NEW CHAPTER UNLOCKED</div>}
-          <div className="next-peek"><small>NEXT PROBLEM</small><strong>{reveal.nextSituation}</strong></div>
           <button className="primary" onPointerEnter={() => playTone(880, .06, .025)} onClick={continueStory}>Keep the story going →</button>
           <button className="end-button" onPointerEnter={() => playTone(260, .07, .025)} onClick={() => { speak(`Final score: ${score} chaos points. You are officially ${TITLES[history.length % TITLES.length]}.`, "excited"); sparkle([523, 392, 330, 262]); stopMusic(); setFinished(true); }}>That is enough chaos for me</button>
         </section>
