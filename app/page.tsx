@@ -225,7 +225,8 @@ export default function Home() {
       setHistory((items) => [...items, { ...scene, reaction: result.reaction, choices: chosen.map((item) => item.emoji) }]);
       setScore((value) => value + points);
       sparkle(turn % 3 === 0 ? [523, 659, 784, 1047, 1319] : [523, 659, 784, 988]);
-      setTimeout(() => speak(`${VERDICTS[(turn + variety) % VERDICTS.length]}! ${result.reaction} You earned ${points} chaos points.`, "excited"), 280);
+      const stickerNames = chosen.map((item) => item.label).join(", ").replace(/, ([^,]*)$/, ", and $1");
+      setTimeout(() => speak(`You chose ${stickerNames}. ${VERDICTS[(turn + variety) % VERDICTS.length]}! ${result.reaction} You earned ${points} chaos points.`, "excited"), 280);
     } catch {
       setHistory((items) => [...items, { ...scene, reaction: "The stickers unionized, solved the problem off-screen, and left one mysterious glittery receipt.", choices: chosen.map((item) => item.emoji) }]);
       setScene({ problem: "The receipt is actually a treasure map, but the X keeps moving." });
