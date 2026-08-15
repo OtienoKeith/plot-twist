@@ -217,7 +217,7 @@ export default function Home() {
 
   function rerollHand() {
     if (!rerolls || loading) return;
-    setHand((items) => [...items.slice(3), ...dealHand(turn + 9).slice(0, 3)]);
+    setHand(dealHand(turn + 9));
     setSelected([]); setRerolls(0); [740, 620, 510, 680].forEach((note, index) => playTone(note, .1, .04, index * .045, "sawtooth"));
     speak("Ooh, fresh chaos!", "tease");
   }
